@@ -30,7 +30,7 @@ internal class TfsEx
     {
         log.Info($" * Running report from {from.ToString("yyyy-MMM-dd")}");
     
-        if (from < DateTime.Now.Subtract(TimeSpan.FromDays(31)))
+        if (from < DateTime.Now.Subtract(TimeSpan.FromDays(91)))
         {
             log.Info($"Unable to search from {from} as it's too long ago. Too much data");
             return Enumerable.Empty<Changeset>();
