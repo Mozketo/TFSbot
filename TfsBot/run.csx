@@ -134,7 +134,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             return Message(req, $"Nothing to merge between '{source}' and '{destination}' {string.Join(" ", filterUsernames)}.");
         }
 
-        return Message(req, $"Found {merges.Count()} merge candidates from {source} to {destination} {username}:\n {string.Join("\n", merges.Select(t => $"{t.ChangesetId} {t.CreationDate.ToString("dd-MMM")} {t.Owner} - {StringEx.Truncate(t.Comment.Replace(Environment.NewLine, ""), 50)}"))}");
+        return Message(req, $"Found {merges.Count()} merge candidates from {source} to {destination} {string.Join(" ", filterUsernames)}:\n {string.Join("\n", merges.Select(t => $"{t.ChangesetId} {t.CreationDate.ToString("dd-MMM")} {t.Owner} - {StringEx.Truncate(t.Comment.Replace(Environment.NewLine, ""), 50)}"))}");
     }
     else if (textParts[1].Equals("stats", StringComparison.OrdinalIgnoreCase))
     {
