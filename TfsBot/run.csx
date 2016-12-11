@@ -92,13 +92,16 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     {
         from = DateTime.Now.Subtract(TimeSpan.FromDays(30));
 
-        var term = string.Join(" ", textParts.Skip(2));
+        var searchUser = textParts.Skip(2).Take(1);
+        var term = textParts.Count() > 3 ? string.Join(" ", textParts.Skip(3)) : string.Empty;
         var history = TfsEx.GetHistory(log, tfsPath, from);
-        var tickets = TfsEx.SearchHistoryByUser(log, history, new[] { term });
+        var tickets = TfsEx.SearchHistoryByUser(log, history, new[] { searchUser });
+        if (!string.IsNullOrWhiteSpace())
+            tickets = TfsEx.SearchHistory(log, tickets, term);
 
         if (!tickets.Any())
         {
-            return Message(req, $"Couldn't find anything from {from.ToString("dd-MMM")} with the committer '{term}'.");
+            return Message(req, $"Couldn't find anything from {from.ToString("dd-MMM")} with the committer '{searchUser}' and term '{term}'.");
         }
 
         return Message(req, $"Found {tickets.Count()} changesets from {from.ToString("dd-MMM")}:\n {string.Join("\n", tickets.Select(t => $"{t.ChangesetId} {t.CreationDate} - {StringEx.Truncate(t.Comment.Replace(Environment.NewLine, ""), 50)}"))}");
@@ -177,7 +180,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
 static HttpResponseMessage Help(HttpRequestMessage req)
 {
-    return Message(req, $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed\n `tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs\n `tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username>` - Find 30 days of changes by committer\n `tfsbot merge /source /destination [username]` - List of merge candidates (changesets) between the source and destination.\n `tfsbot stats <date> [username1] [username2] ... [username3]` - Code review stats per username.");
+    return Message(req, $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed\n `tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs\n `tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username> [term]` - Find 30 days of changes by committer\n `tfsbot merge /source /destination [username]` - List of merge candidates (changesets) between the source and destination.\n `tfsbot stats <date> [username1] [username2] ... [username3]` - Code review stats per username.");
 }
 
 static HttpResponseMessage Message(HttpRequestMessage req, string message)
