@@ -14,11 +14,13 @@ Add a TFSbot to your Slack channels. Built for some specific use-cases so you ma
 * `Tfs.Username` - Username to connect to TFS. Sorry, I've not looked at authentication via oAuth.
 * `Tfs.Password` - Password to connect to TFS.
 * `Jira.IgnoreProjects` - Exmaple: Ignore JIRA projects `ops qa`.
+* `Slack.Token` - A token that Slack Outgoing WebHook provides.
 
 ## Slack
 
 1. Create an Outgoing WebHook,
 2. Trigger word: tfsbot,
 3. URL: Use the Azure Functions URL like `https://<app-name>.azurewebsites.net/api/TfsBot?code=<code>` as displayed in the Azure Functions portal,
-4. Descriptive label: TFSbot
-5. Customise name: TFS
+4. Token: You'll need this in the Azure Functions App Settings,
+5. Descriptive label: TFSbot
+6. Customise name: TFS

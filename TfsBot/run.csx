@@ -13,7 +13,13 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 {
     var formData = await req.Content.ReadAsFormDataAsync();
     var textParts = formData["text"].Split(' ');
+    var slackToken = formData["token"];
     log.Info("text:" + formData["text"]);
+
+    if (!token.Equals(ConfigurationManager.AppSettings["Slack.Token"]))
+    {
+        return BadSlackToken(req);
+    }
 
     // When no arguments are passed then provide a hint to the user about tfsbot.
     if (!textParts.Any() || textParts.Count() == 1 || formData["text"].IndexOf("help", StringComparison.OrdinalIgnoreCase) > -1)
@@ -151,5 +157,12 @@ static HttpResponseMessage Help(HttpRequestMessage req)
 {
     return req.CreateResponse(HttpStatusCode.OK, new {
         text = $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed\n `tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs\n `tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username>` - Find 30 days of changes by committer\n `tfsbot merge /source /destination [username]` - List of none merged items between the source and destination."
+    });
+}
+
+static HttpResponseMessage BadSlackToken(HttpRequestMessage req)
+{
+    return req.CreateResponse(HttpStatusCode.OK, new {
+        text = $"la la la TFSbot won't listen to you becuase - you know - token mismatch."
     });
 }
