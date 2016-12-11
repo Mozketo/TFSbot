@@ -110,7 +110,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     {
         var source = textParts.Count() >= 3 ? textParts[2] : "$/CLS/Src/Main/1611";
         var destination = textParts.Count() >= 4 ? textParts[3] : "$/CLS/Src/Dev";
-        var username = textParts.Count() >= 5 ? textParts[4] : string.Empty;
+        var filterUsernames = textParts.Count() >= 5 ? textParts.Skip(4) : Enumerable.Empty<string>();
 
         if (!source.StartsWith("$"))
             source = $"$/CLS/Src{source}";
@@ -121,15 +121,17 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             .Select(x => x.Changeset)
             .ToList();
 
-        if (!string.IsNullOrWhiteSpace(username))
+        if (filterUsernames.Any())
         {
             log.Info("filter it");
-            merges = merges.Where(h => h.Owner.IndexOf(username, StringComparison.OrdinalIgnoreCase) > -1 || h.OwnerDisplayName.IndexOf(username, StringComparison.OrdinalIgnoreCase) > -1).ToList();
+            merges = merges.Where(h => filterUsernames.Contains(h.Owner, StringComparer.OrdinalIgnoreCase) 
+                || filterUsernames.Contains(h.OwnerDisplayName, StringComparer.OrdinalIgnoreCase)
+            ).ToList();
         }
 
         if (!merges.Any())
         {
-            return Message(req, $"Nothing to merge between '{source}' and '{destination}' {username}.");
+            return Message(req, $"Nothing to merge between '{source}' and '{destination}' {string.Join(" ", filterUsernames)}.");
         }
 
         return Message(req, $"Found {merges.Count()} merge candidates from {source} to {destination} {username}:\n {string.Join("\n", merges.Select(t => $"{t.ChangesetId} {t.CreationDate.ToString("dd-MMM")} {t.Owner} - {StringEx.Truncate(t.Comment.Replace(Environment.NewLine, ""), 50)}"))}");
@@ -180,7 +182,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
 static HttpResponseMessage Help(HttpRequestMessage req)
 {
-    return Message(req, $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed\n `tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs\n `tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username> [term]` - Find 30 days of changes by committer\n `tfsbot merge /source /destination [username]` - List of merge candidates (changesets) between the source and destination.\n `tfsbot stats <date> [username1] [username2] ... [username3]` - Code review stats per username.");
+    return Message(req, $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed\n `tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs\n `tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username> [term]` - Find 30 days of changes by committer\n `tfsbot merge /source /destination <username1> [username2] ... [usernameN]` - List of merge candidates (changesets) between the source and destination.\n `tfsbot stats <date> [username1] [username2] ... [username3]` - Code review stats per username.");
 }
 
 static HttpResponseMessage Message(HttpRequestMessage req, string message)
