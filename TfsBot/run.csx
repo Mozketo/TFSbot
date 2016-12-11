@@ -123,7 +123,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
         if (filterUsernames.Any())
         {
-            log.Info("filter it with: string.Join(",", filterUsernames)");
+            log.Info("filter it with: {string.Join(",", filterUsernames)}");
             merges = merges.Where(h => filterUsernames.Contains(h.Owner, StringComparer.OrdinalIgnoreCase) 
                 || filterUsernames.Contains(h.OwnerDisplayName, StringComparer.OrdinalIgnoreCase)
             ).ToList();
