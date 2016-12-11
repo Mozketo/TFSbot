@@ -46,6 +46,14 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
     if (textParts[1].Equals("not-reviewed", StringComparison.OrdinalIgnoreCase))
     {
+        // Allow days for input here
+        var d = textParts.Count() > 2 ? textParts.Skip(2).FirstOrDefault() : string.Empty;
+        int days;
+        if (int.TryParse(d, out days))
+        {
+            from = DateTime.UtcNow.Subtract(TimeSpan.FromDays(Math.Abs(days)));
+        }
+
         var searchUser = textParts.Count() > 3 ? textParts.Skip(3) : Enumerable.Empty<string>();
         var history = TfsEx.GetHistory(log, tfsPath, from);
         
@@ -198,7 +206,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
 static HttpResponseMessage Help(HttpRequestMessage req)
 {
-    return Message(req, $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed <yyyy-MM-dd> [username1] [username2]` - Changesets not peer-reviewed\n `tfsbot missing-jira <yyyy-MM-dd>` - Changesets missing Jira IDs\n `tfsbot tickets <yyyy-MM-dd>` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username> [term]` - Find 30 days of changes by committer. Comment search term is optional.\n `tfsbot merge /source /destination [username1] [username2]` - List of merge candidates (changesets) between the source and destination, can be filtered by username(s).\n `tfsbot stats <yyyy-MM-dd> or <days> [username1] [username2]` - Code review stats per username (default to your username).");
+    return Message(req, $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed <yyyy-MM-dd> or <days> [username1] [username2]` - Changesets not peer-reviewed\n `tfsbot missing-jira <yyyy-MM-dd>` - Changesets missing Jira IDs\n `tfsbot tickets <yyyy-MM-dd>` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username> [term]` - Find 30 days of changes by committer. Comment search term is optional.\n `tfsbot merge /source /destination [username1] [username2]` - List of merge candidates (changesets) between the source and destination, can be filtered by username(s).\n `tfsbot stats <yyyy-MM-dd> or <days> [username1] [username2]` - Code review stats per username (default to your username).");
 }
 
 static HttpResponseMessage Message(HttpRequestMessage req, string message)
