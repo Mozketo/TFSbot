@@ -18,7 +18,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
     if (!slackToken.Equals(ConfigurationManager.AppSettings["Slack.Token"]))
     {
-        log.Info($"Slack token {slackToken} didn't match the expected token.")
+        log.Info($"Slack token {slackToken} didn't match the expected token.");
         return BadSlackToken(req);
     }
 
