@@ -18,6 +18,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
     if (!slackToken.Equals(ConfigurationManager.AppSettings["Slack.Token"]))
     {
+        log.Info($"Slack token {slackToken} didn't match the expected token.")
         return BadSlackToken(req);
     }
 
@@ -156,7 +157,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 static HttpResponseMessage Help(HttpRequestMessage req)
 {
     return req.CreateResponse(HttpStatusCode.OK, new {
-        text = $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed\n `tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs\n `tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username>` - Find 30 days of changes by committer\n `tfsbot merge /source /destination [username]` - List of none merged items between the source and destination."
+        text = $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed\n `tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs\n `tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username>` - Find 30 days of changes by committer\n `tfsbot merge /source /destination [username]` - List of merge candidates (changesets) between the source and destination."
     });
 }
 

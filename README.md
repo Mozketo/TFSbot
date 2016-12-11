@@ -24,3 +24,14 @@ Add a TFSbot to your Slack channels. Built for some specific use-cases so you ma
 4. Token: You'll need this in the Azure Functions App Settings,
 5. Descriptive label: TFSbot
 6. Customise name: TFS
+
+## Usage
+
+Once everything is wired up in Slack and Azure you can use the the bot like this:
+
+`tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed
+`tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs
+`tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity
+`tfsbot search <term>` - Search 30 days of history
+`tfsbot search-user <username>` - Find 30 days of changes by committer
+`tfsbot merge /source /destination [username]` - List of merge candidates (changesets) between the source and destination.
