@@ -15,7 +15,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     var formData = await req.Content.ReadAsFormDataAsync();
     var textParts = formData["text"].Split(' ');
     var slackToken = formData["token"];
-    var username = formData["user_name"];
+    var slackUsername = formData["user_name"];
     log.Info("text:" + formData["text"]);
 
     if (!slackToken.Equals(ConfigurationManager.AppSettings["Slack.Token"]))
@@ -136,7 +136,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         // tfsbot stats <date> <username1> <username2> ... <usernameN>
         var users = textParts.Skip(3);
         if (!users.Any())
-            users = new[] { username };
+            users = new[] { slackUsername };
 
         var history = TfsEx.GetHistory(log, tfsPath, from);
         var changesets = TfsEx.SearchHistoryByUser(log, history, users);
@@ -164,7 +164,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             sb.AppendLine(line);
         }        
 
-        return Message(req, $"Stats from {from.ToString("dd-MMM")}. User, Reviewed, Commits, Review%\n {sb.ToString()}";
+        return Message(req, $"Stats from {from.ToString("dd-MMM")}. User, Reviewed, Commits, Review%\n {sb.ToString()}");
     }
     
     log.Info($"C# Timer trigger function executed at: {DateTime.Now}");  
