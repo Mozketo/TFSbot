@@ -77,19 +77,20 @@ internal class TfsEx
     // Search the changeset comments based on a Committer username or displayname. Case-insensitive.
     // history: A list of changesets to search in.
     // term: String to search for in Committer or CommitterDisplayName.
-    internal static IEnumerable<Changeset> SearchHistoryByUser(TraceWriter log, IEnumerable<Changeset> history, string term)
+    internal static IEnumerable<Changeset> SearchHistoryByUser(TraceWriter log, IEnumerable<Changeset> history, IEnumerable<string> users)
     {
-        log.Info($"Searching users '{term}' (case insensitive) in {history.Count()} items.");
+        log.Info($"Searching users '{string.Join(", ", users.Select(u => u)}' (case insensitive) in {history.Count()} items.");
     
-        var items = new List<Changeset>();
         foreach (var h in history)
         {
-            if (h.Committer.IndexOf(term, StringComparison.OrdinalIgnoreCase) > -1 || h.CommitterDisplayName.IndexOf(term, StringComparison.OrdinalIgnoreCase) > -1)
+            foreach (var user in users)
             {
-                items.Add(h);
+                if (h.Committer.IndexOf(user, StringComparison.OrdinalIgnoreCase) > -1 || h.CommitterDisplayName.IndexOf(user, StringComparison.OrdinalIgnoreCase) > -1)
+                {
+                    yield return h;
+                }
             }
         }
-        return items;
     }
     
     // Given a list of Changesets return a list that are not peer-reviewed. 
