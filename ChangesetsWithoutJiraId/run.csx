@@ -17,7 +17,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     string tfsPath = ConfigurationManager.AppSettings["Tfs.Path"] ?? "$/";
 
     // Ignore Jira projects like: Release SHD esd ops qa
-    IEnumerable<string> ignoreJiraProjects = (ConfigurationManager.AppSettings["Tfs.IgnoreJiraProjects"] ?? string.Empty).Split(' ').Select(s => s.Trim());
+    IEnumerable<string> ignoreJiraProjects = (ConfigurationManager.AppSettings["Jira.IgnoreProjects"] ?? string.Empty).Split(' ').Select(s => s.Trim());
 
     var history = TfsEx.GetHistory(log, tfsPath, DateTime.Parse(from));
     var missingJiraIds = GetMissingJiraIds(log, history, ignoreJiraProjects);

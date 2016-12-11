@@ -39,17 +39,18 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     {
         var history = TfsEx.GetHistory(log, tfsPath, from);
         var tickets = TfsEx.NotReviewed(log, history);
-        if (tickets.Any())
-        {
-            return req.CreateResponse(HttpStatusCode.OK, new {
-                text = $"Changesets not reviewed from {from.ToString("dd-MMM")}:\n{string.Join("\n", tickets.Select(t => t))}"
-            });
-        }
+        var message = tickets.Any()
+            ? $"Changesets not reviewed from {from.ToString("dd-MMM")}:\n{string.Join("\n", tickets.Select(t => t))}"
+            : $"All changesets reviewed from {from.ToString("dd-MMM")}";
+
+        return req.CreateResponse(HttpStatusCode.OK, new {
+            text = message
+        });
     }
     else if (textParts[1].Equals("missing-jira", StringComparison.OrdinalIgnoreCase))
     {
         // Ignore Jira projects like: Release SHD esd ops qa
-        IEnumerable<string> ignoreJiraProjects = (ConfigurationManager.AppSettings["Tfs.IgnoreJiraProjects"] ?? string.Empty).Split(' ').Select(s => s.Trim());
+        IEnumerable<string> ignoreJiraProjects = (ConfigurationManager.AppSettings["Jira.IgnoreProjects"] ?? string.Empty).Split(' ').Select(s => s.Trim());
 
         var history = TfsEx.GetHistory(log, tfsPath, from);
         var missingJiraIds = TfsEx.GetMissingJiraIds(log, history, ignoreJiraProjects);
@@ -61,7 +62,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     else if (textParts[1].Equals("tickets", StringComparison.OrdinalIgnoreCase))
     {
         // Ignore Jira projects like: Release SHD esd ops qa
-        IEnumerable<string> ignoreJiraProjects = (ConfigurationManager.AppSettings["Tfs.IgnoreJiraProjects"] ?? string.Empty).Split(' ').Select(s => s.Trim());
+        IEnumerable<string> ignoreJiraProjects = (ConfigurationManager.AppSettings["Jira.IgnoreProjects"] ?? string.Empty).Split(' ').Select(s => s.Trim());
 
         var history = TfsEx.GetHistory(log, tfsPath, from);
         var tickets = TfsEx.GetJiraIds(log, history, ignoreJiraProjects);
