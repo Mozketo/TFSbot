@@ -49,7 +49,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         var searchUser = textParts.Count() > 3 ? textParts.Skip(3) : Enumerable.Empty<string>();
         var history = TfsEx.GetHistory(log, tfsPath, from);
         
-        if (users.Any())
+        if (searchUser.Any())
         {
             history = TfsEx.SearchHistoryByUser(log, history, searchUser);
         }
