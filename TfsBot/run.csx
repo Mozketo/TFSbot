@@ -8,6 +8,7 @@ using System.Collections.Specialized;
 using System.Configuration;
 using System.Linq;
 using System.Net;
+using System.Text;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
 {
@@ -19,7 +20,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     if (!slackToken.Equals(ConfigurationManager.AppSettings["Slack.Token"]))
     {
         log.Info($"Slack token {slackToken} didn't match the expected token.");
-        return BadSlackToken(req);
+        return Message(req, "la la la TFSbot won't listen to you becuase - you know - token mismatch.");
     }
 
     // When no arguments are passed then provide a hint to the user about tfsbot.
@@ -49,10 +50,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         var message = tickets.Any()
             ? $"Changesets not reviewed from {from.ToString("dd-MMM")}:\n{string.Join("\n", tickets.Select(t => t))}"
             : $"All changesets reviewed from {from.ToString("dd-MMM")}";
-
-        return req.CreateResponse(HttpStatusCode.OK, new {
-            text = message
-        });
+        return Message(req, message);
     }
     else if (textParts[1].Equals("missing-jira", StringComparison.OrdinalIgnoreCase))
     {
@@ -62,8 +60,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         var history = TfsEx.GetHistory(log, tfsPath, from);
         var missingJiraIds = TfsEx.GetMissingJiraIds(log, history, ignoreJiraProjects);
 
-        return req.CreateResponse(HttpStatusCode.OK, new {
-            text = $"Missing Jira ticket ID from {from.ToString("dd-MMM")}:\n{string.Join("\n", missingJiraIds.Select(t => t))}"
+        return Message(req, $"Missing Jira ticket ID from {from.ToString("dd-MMM")}:\n{string.Join("\n", missingJiraIds.Select(t => t))}");
         });
     }
     else if (textParts[1].Equals("tickets", StringComparison.OrdinalIgnoreCase))
@@ -74,9 +71,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         var history = TfsEx.GetHistory(log, tfsPath, from);
         var tickets = TfsEx.GetJiraIds(log, history, ignoreJiraProjects);
 
-        return req.CreateResponse(HttpStatusCode.OK, new {
-            text = $"Jira activity from {from.ToString("dd-MMM")}.\n\nkey in ({string.Join(", ", tickets.Select(t => t))})"
-        });
+        return Message(req, $"Jira activity from {from.ToString("dd-MMM")}.\n\nkey in ({string.Join(", ", tickets.Select(t => t))})");
     }
     else if (textParts[1].Equals("search", StringComparison.OrdinalIgnoreCase) && textParts.Count() > 2)
     {
@@ -88,14 +83,10 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
         if (!tickets.Any())
         {
-            return req.CreateResponse(HttpStatusCode.OK, new {
-                text = $"Couldn't find anything from {from.ToString("dd-MMM")} with the term '{term}'."
-            });
+            return Message(req, $"Couldn't find anything from {from.ToString("dd-MMM")} with the term '{term}'.");
         }
 
-        return req.CreateResponse(HttpStatusCode.OK, new {
-            text = $"Found {tickets.Count()} changesets from {from.ToString("dd-MMM")}:\n {string.Join("\n", tickets.Select(t => $"{t.ChangesetId} {t.CommitterDisplayName} - {StringEx.Truncate(t.Comment.Replace(Environment.NewLine, ""), 50)}"))}"
-        });
+        return Message(req, $"Found {tickets.Count()} changesets from {from.ToString("dd-MMM")}:\n {string.Join("\n", tickets.Select(t => $"{t.ChangesetId} {t.CommitterDisplayName} - {StringEx.Truncate(t.Comment.Replace(Environment.NewLine, ""), 50)}"))}");
     }
     else if (textParts[1].Equals("search-user", StringComparison.OrdinalIgnoreCase) && textParts.Count() > 2)
     {
@@ -103,18 +94,14 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
         var term = string.Join(" ", textParts.Skip(2));
         var history = TfsEx.GetHistory(log, tfsPath, from);
-        var tickets = TfsEx.SearchHistoryByUser(log, history, term);
+        var tickets = TfsEx.SearchHistoryByUser(log, history, new[] { term });
 
         if (!tickets.Any())
         {
-            return req.CreateResponse(HttpStatusCode.OK, new {
-                text = $"Couldn't find anything from {from.ToString("dd-MMM")} with the committer '{term}'."
-            });
+            return Message(req, $"Couldn't find anything from {from.ToString("dd-MMM")} with the committer '{term}'.");
         }
 
-        return req.CreateResponse(HttpStatusCode.OK, new {
-            text = $"Found {tickets.Count()} changesets from {from.ToString("dd-MMM")}:\n {string.Join("\n", tickets.Select(t => $"{t.ChangesetId} {t.CreationDate} - {StringEx.Truncate(t.Comment.Replace(Environment.NewLine, ""), 50)}"))}"
-        });
+        return Message(req, $"Found {tickets.Count()} changesets from {from.ToString("dd-MMM")}:\n {string.Join("\n", tickets.Select(t => $"{t.ChangesetId} {t.CreationDate} - {StringEx.Truncate(t.Comment.Replace(Environment.NewLine, ""), 50)}"))}");
     }
     else if (textParts[1].Equals("merge", StringComparison.OrdinalIgnoreCase))
     {
@@ -139,14 +126,45 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
         if (!merges.Any())
         {
-            return req.CreateResponse(HttpStatusCode.OK, new {
-                text = $"Nothing to merge between '{source}' and '{destination}' {username}."
-            });
+            return Message(req, $"Nothing to merge between '{source}' and '{destination}' {username}.");
         }
 
-        return req.CreateResponse(HttpStatusCode.OK, new {
-            text = $"Found {merges.Count()} merge candidates from {source} to {destination} {username}:\n {string.Join("\n", merges.Select(t => $"{t.ChangesetId} {t.CreationDate.ToString("dd-MMM")} {t.Owner} - {StringEx.Truncate(t.Comment.Replace(Environment.NewLine, ""), 50)}"))}"
-        });
+        return Message(req, $"Found {merges.Count()} merge candidates from {source} to {destination} {username}:\n {string.Join("\n", merges.Select(t => $"{t.ChangesetId} {t.CreationDate.ToString("dd-MMM")} {t.Owner} - {StringEx.Truncate(t.Comment.Replace(Environment.NewLine, ""), 50)}"))}");
+    }
+    else if (textParts[1].Equals("stats", StringComparison.OrdinalIgnoreCase))
+    {
+        // tfsbot stats <date> <username1> <username2> ... <usernameN>
+        var users = textParts.Skip(3);
+        if (!users.Any())
+            return Help(req);
+
+        var history = TfsEx.GetHistory(log, tfsPath, from);
+        var tickets = TfsEx.SearchHistoryByUser(log, history, users);
+
+        var result = new Dictionary<string, Tuple<int, int>>();
+        foreach (var cs in changesets)
+        {
+            if (!result.ContainsKey(cs.CommitterDisplayName))
+            {
+                result.Add(cs.CommitterDisplayName, Tuple.Create(1, ChangesetEx.IsReviewed(cs) ? 1 : 0));
+            }
+            else
+            {
+                var item = result[cs.CommitterDisplayName];
+                result[cs.CommitterDisplayName] = Tuple.Create(item.Item1 + 1, ChangesetEx.IsReviewed(cs) ? item.Item2 + 1 : item.Item2);
+            }                
+        }
+
+        var sb = new StringBuilder();
+        foreach (var r in result)
+        {
+            string line = String.Format("{0}, {1}, {2}, {3}%\n",
+                r.Key, r.Value.Item2, r.Value.Item1, Math.Round(((double)r.Value.Item2 / r.Value.Item1) * 100, 1)
+                );
+            sb.AppendLine(line);
+        }        
+
+        return Message(req, sb.ToString());
     }
     
     log.Info($"C# Timer trigger function executed at: {DateTime.Now}");  
@@ -156,14 +174,12 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
 static HttpResponseMessage Help(HttpRequestMessage req)
 {
-    return req.CreateResponse(HttpStatusCode.OK, new {
-        text = $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed\n `tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs\n `tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username>` - Find 30 days of changes by committer\n `tfsbot merge /source /destination [username]` - List of merge candidates (changesets) between the source and destination."
-    });
+    return Message(req, $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed\n `tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs\n `tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username>` - Find 30 days of changes by committer\n `tfsbot merge /source /destination [username]` - List of merge candidates (changesets) between the source and destination.");
 }
 
-static HttpResponseMessage BadSlackToken(HttpRequestMessage req)
+static HttpResponseMessage Message(HttpRequestMessage req, string message)
 {
     return req.CreateResponse(HttpStatusCode.OK, new {
-        text = $"la la la TFSbot won't listen to you becuase - you know - token mismatch."
+        text = message
     });
 }
