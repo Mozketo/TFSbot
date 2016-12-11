@@ -60,7 +60,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         var history = TfsEx.GetHistory(log, tfsPath, from);
         var missingJiraIds = TfsEx.GetMissingJiraIds(log, history, ignoreJiraProjects);
 
-        return Message(req, $"Missing Jira ticket ID from {from.ToString("dd-MMM")}:\n{string.Join("\n", missingJiraIds.Select(t => t))}"));
+        return Message(req, $"Missing Jira ticket ID from {from.ToString("dd-MMM")}:\n{string.Join("\n", missingJiraIds.Select(t => t))}");
     }
     else if (textParts[1].Equals("tickets", StringComparison.OrdinalIgnoreCase))
     {
@@ -138,7 +138,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             return Help(req);
 
         var history = TfsEx.GetHistory(log, tfsPath, from);
-        var tickets = TfsEx.SearchHistoryByUser(log, history, users);
+        var changesets = TfsEx.SearchHistoryByUser(log, history, users);
 
         var result = new Dictionary<string, Tuple<int, int>>();
         foreach (var cs in changesets)
