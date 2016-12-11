@@ -16,7 +16,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     var slackToken = formData["token"];
     log.Info("text:" + formData["text"]);
 
-    if (!token.Equals(ConfigurationManager.AppSettings["Slack.Token"]))
+    if (!slackToken.Equals(ConfigurationManager.AppSettings["Slack.Token"]))
     {
         return BadSlackToken(req);
     }
