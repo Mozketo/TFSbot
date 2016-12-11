@@ -95,8 +95,8 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         var searchUser = textParts.Skip(2).Take(1);
         var term = textParts.Count() > 3 ? string.Join(" ", textParts.Skip(3)) : string.Empty;
         var history = TfsEx.GetHistory(log, tfsPath, from);
-        var tickets = TfsEx.SearchHistoryByUser(log, history, new[] { searchUser });
-        if (!string.IsNullOrWhiteSpace())
+        var tickets = TfsEx.SearchHistoryByUser(log, history, searchUser);
+        if (!string.IsNullOrWhiteSpace(term))
             tickets = TfsEx.SearchHistory(log, tickets, term);
 
         if (!tickets.Any())
