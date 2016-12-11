@@ -123,7 +123,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
         if (filterUsernames.Any())
         {
-            log.Info("filter it with: {string.Join(",", filterUsernames)}");
+            log.Info($"filter it with: {string.Join(",", filterUsernames)}");
             merges = merges.Where(h => filterUsernames.Any(s => h.Owner.IndexOf(s, StringComparison.OrdinalIgnoreCase) > -1)
                 || filterUsernames.Any(s => h.OwnerDisplayName.IndexOf(s, StringComparison.OrdinalIgnoreCase) > -1)
             ).ToList();
@@ -182,7 +182,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
 static HttpResponseMessage Help(HttpRequestMessage req)
 {
-    return Message(req, $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed\n `tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs\n `tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username> [term]` - Find 30 days of changes by committer\n `tfsbot merge /source /destination <username1> [username2] ... [usernameN]` - List of merge candidates (changesets) between the source and destination.\n `tfsbot stats <date> [username1] [username2] ... [usernameN]` - Code review stats per username.");
+    return Message(req, $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed <yyyy-MM-dd>` - Changesets not peer-reviewed\n `tfsbot missing-jira <yyyy-MM-dd>` - Changesets missing Jira IDs\n `tfsbot tickets <yyyy-MM-dd>` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username> [term]` - Find 30 days of changes by committer. Comment search term is optional.\n `tfsbot merge /source /destination [username1] [username2]` - List of merge candidates (changesets) between the source and destination, can be filtered by username(s).\n `tfsbot stats <yyyy-MM-dd> [username1] [username2]` - Code review stats per username.");
 }
 
 static HttpResponseMessage Message(HttpRequestMessage req, string message)
