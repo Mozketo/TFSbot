@@ -123,7 +123,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
         if (filterUsernames.Any())
         {
-            log.Info("filter it");
+            log.Info("filter it with: string.Join(",", filterUsernames)");
             merges = merges.Where(h => filterUsernames.Contains(h.Owner, StringComparer.OrdinalIgnoreCase) 
                 || filterUsernames.Contains(h.OwnerDisplayName, StringComparer.OrdinalIgnoreCase)
             ).ToList();
@@ -170,7 +170,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         }        
 
         var message = sb.Length > 0
-            ? $"Stats from {from.ToString("dd-MMM")}.\nUser, Reviewed, Commits, Review%\n{sb.ToString()}"
+            ? $"Stats from {from.ToString("dd-MMM")} for {string.Join(",", users)}.\nUser, Reviewed, Commits, Review%\n{sb.ToString()}"
             : $"Unable to generate stats from {from.ToString("dd-MMM")} for {string.Join(", ", users.Select(u => u))}.";
         return Message(req, message);
     }
@@ -182,7 +182,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
 static HttpResponseMessage Help(HttpRequestMessage req)
 {
-    return Message(req, $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed\n `tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs\n `tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username> [term]` - Find 30 days of changes by committer\n `tfsbot merge /source /destination <username1> [username2] ... [usernameN]` - List of merge candidates (changesets) between the source and destination.\n `tfsbot stats <date> [username1] [username2] ... [username3]` - Code review stats per username.");
+    return Message(req, $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed\n `tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs\n `tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username> [term]` - Find 30 days of changes by committer\n `tfsbot merge /source /destination <username1> [username2] ... [usernameN]` - List of merge candidates (changesets) between the source and destination.\n `tfsbot stats <date> [username1] [username2] ... [usernameN]` - Code review stats per username.");
 }
 
 static HttpResponseMessage Message(HttpRequestMessage req, string message)
