@@ -160,10 +160,10 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             string line = String.Format("{0}, {1}, {2}, {3}%\n",
                 r.Key, r.Value.Item2, r.Value.Item1, Math.Round(((double)r.Value.Item2 / r.Value.Item1) * 100, 1)
                 );
-            sb.AppendLine(line);
+            sb.Append(line);
         }        
 
-        return Message(req, sb.ToString());
+        return Message(req, $"Status from {from.ToString("dd-MMM")}. User, Reviewed, Commits, Review%\n {sb.ToString()}";
     }
     
     log.Info($"C# Timer trigger function executed at: {DateTime.Now}");  
