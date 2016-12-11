@@ -131,13 +131,21 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
         if (!merges.Any())
         {
-            return Message(req, $"Nothing to merge between '{source}' and '{destination}' {string.Join(" ", filterUsernames)}.");
+            return Message(req, $"Nothing to merge between '{source}' and '{destination}' {string.Join(", ", filterUsernames)}.");
         }
 
-        return Message(req, $"Found {merges.Count()} merge candidates from {source} to {destination} {string.Join(" ", filterUsernames)}:\n {string.Join("\n", merges.Select(t => $"{t.ChangesetId} {t.CreationDate.ToString("dd-MMM")} {t.Owner} - {StringEx.Truncate(t.Comment.Replace(Environment.NewLine, ""), 50)}"))}");
+        return Message(req, $"Found {merges.Count()} merge candidates from {source} to {destination} {string.Join(", ", filterUsernames)}:\n {string.Join("\n", merges.Select(t => $"{t.ChangesetId} {t.CreationDate.ToString("dd-MMM")} {t.Owner} - {StringEx.Truncate(t.Comment.Replace(Environment.NewLine, ""), 50)}"))}");
     }
     else if (textParts[1].Equals("stats", StringComparison.OrdinalIgnoreCase))
     {
+        // Allow days for input here
+        var d = textParts.Count() > 2 ? textParts.Skip(2).FirstOrDefault() : string.Empty;
+        int days;
+        if (int.TryParse(d, out days))
+        {
+            from = DateTime.UtcNow.Subtract(TimeSpan.FromDays(Math.Abs(days)));
+        }
+
         // tfsbot stats <date> <username1> <username2> ... <usernameN>
         var users = textParts.Skip(3);
         if (!users.Any())
@@ -182,7 +190,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
 static HttpResponseMessage Help(HttpRequestMessage req)
 {
-    return Message(req, $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed <yyyy-MM-dd>` - Changesets not peer-reviewed\n `tfsbot missing-jira <yyyy-MM-dd>` - Changesets missing Jira IDs\n `tfsbot tickets <yyyy-MM-dd>` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username> [term]` - Find 30 days of changes by committer. Comment search term is optional.\n `tfsbot merge /source /destination [username1] [username2]` - List of merge candidates (changesets) between the source and destination, can be filtered by username(s).\n `tfsbot stats <yyyy-MM-dd> [username1] [username2]` - Code review stats per username.");
+    return Message(req, $"Yo, TFSbot doesn't understand. Tell me what you want:\n `tfsbot not-reviewed <yyyy-MM-dd>` - Changesets not peer-reviewed\n `tfsbot missing-jira <yyyy-MM-dd>` - Changesets missing Jira IDs\n `tfsbot tickets <yyyy-MM-dd>` - Changeset to Jira activity\n `tfsbot search <term>` - Search 30 days of history\n `tfsbot search-user <username> [term]` - Find 30 days of changes by committer. Comment search term is optional.\n `tfsbot merge /source /destination [username1] [username2]` - List of merge candidates (changesets) between the source and destination, can be filtered by username(s).\n `tfsbot stats <yyyy-MM-dd> or <days> [username1] [username2]` - Code review stats per username (default to your username).");
 }
 
 static HttpResponseMessage Message(HttpRequestMessage req, string message)
