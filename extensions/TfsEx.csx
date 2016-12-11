@@ -79,7 +79,7 @@ internal class TfsEx
     // term: String to search for in Committer or CommitterDisplayName.
     internal static IEnumerable<Changeset> SearchHistoryByUser(TraceWriter log, IEnumerable<Changeset> history, IEnumerable<string> users)
     {
-        log.Info($"Searching users '{string.Join(", ", users.Select(u => u)}' (case insensitive) in {history.Count()} items.");
+        log.Info($"Searching users '{string.Join(", ", users.Select(u => u))}' (case insensitive) in {history.Count()} items.");
     
         foreach (var h in history)
         {

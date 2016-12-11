@@ -60,8 +60,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         var history = TfsEx.GetHistory(log, tfsPath, from);
         var missingJiraIds = TfsEx.GetMissingJiraIds(log, history, ignoreJiraProjects);
 
-        return Message(req, $"Missing Jira ticket ID from {from.ToString("dd-MMM")}:\n{string.Join("\n", missingJiraIds.Select(t => t))}");
-        });
+        return Message(req, $"Missing Jira ticket ID from {from.ToString("dd-MMM")}:\n{string.Join("\n", missingJiraIds.Select(t => t))}"));
     }
     else if (textParts[1].Equals("tickets", StringComparison.OrdinalIgnoreCase))
     {

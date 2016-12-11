@@ -35,3 +35,4 @@ Once everything is wired up in Slack and Azure you can use the the bot like this
 `tfsbot search <term>` - Search 30 days of history
 `tfsbot search-user <username>` - Find 30 days of changes by committer
 `tfsbot merge /source /destination [username]` - List of merge candidates (changesets) between the source and destination.
+`tfsbot stats <date> [username1] [username2] ... [username3]` - Code review stats per username.
