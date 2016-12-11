@@ -164,7 +164,10 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             sb.AppendLine(line);
         }        
 
-        return Message(req, $"Stats from {from.ToString("dd-MMM")}. User, Reviewed, Commits, Review%\n {sb.ToString()}");
+        var message = sb.Length > 0
+            ? $"Stats from {from.ToString("dd-MMM")}.\nUser, Reviewed, Commits, Review%\n{sb.ToString()}"
+            : $"Unable to generate stats from {from.ToString("dd-MMM")} for {string.Join(", ", users.Select(u => u))}.";
+        return Message(req, message);
     }
     
     log.Info($"C# Timer trigger function executed at: {DateTime.Now}");  
