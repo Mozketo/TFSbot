@@ -10,6 +10,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 
+// TFSbot v1.0
+
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
 {
     var formData = await req.Content.ReadAsFormDataAsync();
