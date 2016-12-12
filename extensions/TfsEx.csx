@@ -63,15 +63,18 @@ internal class TfsEx
     {
         log.Info($"Searching term '{term}' (case insensitive) in {history.Count()} items.");
     
-        var items = new List<Changeset>();
+        if (string.IsNullOrWhiteSpace(term))
+            return history;
+
+        //var items = new List<Changeset>();
         foreach (var h in history)
         {
             if (h.Comment.IndexOf(term, StringComparison.OrdinalIgnoreCase) > -1)
             {
-                items.Add(h);
+                yield return h;
             }
         }
-        return items;
+        //return items;
     }
     
     // Search the changeset comments based on a Committer username or displayname. Case-insensitive.
@@ -81,6 +84,9 @@ internal class TfsEx
     {
         log.Info($"Searching users '{string.Join(", ", users.Select(u => u))}' (case insensitive) in {history.Count()} items.");
     
+        if (!users.Any())
+            return history;
+
         foreach (var h in history)
         {
             foreach (var user in users)
