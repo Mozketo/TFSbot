@@ -167,7 +167,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         if (!users.Any())
             users = new[] { slackUsername };
         if (string.Join("", users).Trim().Equals("*"))
-            users = Enumerable.Empty<string>(); // Don't filter for any users
+            users = Enumerable.Empty<string>(); // Don't filter for any users, we want all.
 
         var history = TfsEx.GetHistory(log, tfsPath, from);
         var changesets = TfsEx.SearchHistoryByUser(log, history, users);
