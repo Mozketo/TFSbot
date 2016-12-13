@@ -107,7 +107,7 @@ internal class TfsEx
     
     // Given a list of Changesets return a list that are not peer-reviewed. 
     // Note: We use a string like "**<initials>" in the TFS commit comment. This code does not search WorkItem links.
-    internal static IEnumerable<string> NotReviewed(TraceWriter log, IEnumerable<Changeset> history)
+    internal static IEnumerable<Changeset> NotReviewed(TraceWriter log, IEnumerable<Changeset> history)
     {
         log.Info($"{history.Count()} changesets");
     

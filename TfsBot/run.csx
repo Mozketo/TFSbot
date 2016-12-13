@@ -65,7 +65,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         }
 
         var tickets = TfsEx.NotReviewed(log, history)
-            .Select(cs => $"{cs.ChangesetId}, {cs.Committer}, {cs.CreationDate.ToString("dd-MMM")}, {StringEx.Truncate(t.Comment.Replace(Environment.NewLine, string.Empty), 50)}");
+            .Select(cs => $"{cs.ChangesetId}, {cs.Committer}, {cs.CreationDate.ToString("dd-MMM")}, {StringEx.Truncate(cs.Comment.Replace(Environment.NewLine, string.Empty), 50)}");
 
         var message = tickets.Any()
             ? $"Changesets not reviewed from {from.ToString("dd-MMM")}:\n{string.Join("\n", tickets.Select(t => t))}"
