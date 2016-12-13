@@ -113,8 +113,7 @@ internal class TfsEx
     
         // Provide a list of all the jira IDs that appear in the changeset comments.
         var tickets = history
-            .Where(cs => !ChangesetEx.IsReviewed(cs))
-            .Select(cs => $"CS:{cs.ChangesetId} by {cs.Committer} ({cs.CreationDate.ToString("dd-MMM")})");
+            .Where(cs => !ChangesetEx.IsReviewed(cs));
     
         return tickets;
     }
