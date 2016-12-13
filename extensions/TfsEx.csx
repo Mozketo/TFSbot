@@ -168,7 +168,7 @@ internal class TfsEx
     internal static IEnumerable<MergeCandidate> MergeCandidates(TraceWriter log, string source, string destination)
     {
         // Get a list of merge candidates, ignoring anything starting with "merg" for "merged" "merging" etc
-        string ignore = "merg";
+        var ignore = new[] { "merg", "rollback" };
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
     
@@ -176,10 +176,9 @@ internal class TfsEx
         using (TfsTeamProjectCollection tpc = GetTfsCollection())
         {
             var vcs = tpc.GetService<VersionControlServer>();
-
+            // Get a list of merge candidates but ignore the items with keywords in them
             var result = vcs.GetMergeCandidates(source, destination, RecursionType.Full)
-                .Where(mc => mc.Changeset.Comment.IndexOf(ignore, StringComparison.OrdinalIgnoreCase) == -1);
-                //.Select(mc => mc.ToModel());
+                .Where(mc => ignore.Any(s => mc.Changeset.Comment.IndexOf(s, StringComparison.OrdinalIgnoreCase) > -1));
                 
             log.Info($"Found {result.Count()} merges between {source} and {destination} in {stopwatch.ElapsedMilliseconds} ms");
                 
@@ -203,6 +202,10 @@ internal class ChangesetEx
         // If the next char after a ** is empty (or is ***), then this is not reviewed
         if (changeset.Comment.Substring(stars + 2, 1) == " " || changeset.Comment.Substring(stars + 2, 1) == "*")
             return false;
+
+        // '**no review required' shouldn't be considered an actual code review.
+        if (changeset.Comment.IndexOf("**no", StringComparison.OrdinalIgnoreCase) > -1)
+            return false; 
 
         return true;
     }
