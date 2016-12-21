@@ -3,6 +3,7 @@
 using Dapper;
 using System;
 using System.Configuration;
+using System.Data.SqlClient;
 using System.Linq;
 using System.IO;
 using System.Net;
@@ -13,6 +14,7 @@ using Newtonsoft.Json;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
 {
+    var now = DateTime.UtcNow;
     var createdOn = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0);
     var cnnString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;
     using (var connection = new SqlConnection(cnnString))
