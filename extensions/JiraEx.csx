@@ -1,3 +1,5 @@
+#r "Newtonsoft.Json"
+
 using Newtonsoft.Json.Linq;
 using System;
 using System.Net.Http;
