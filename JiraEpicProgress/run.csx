@@ -1,5 +1,6 @@
 #load "..\extensions\JiraEx.csx"
 
+using Dapper;
 using System;
 using System.Configuration;
 using System.Linq;
@@ -12,14 +13,13 @@ using Newtonsoft.Json;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
 {
-    string folder = Environment.ExpandEnvironmentVariables(@"%HOME%");
-    string cachePath = Path.Combine(folder, "jira-epic-cache.txt");
-    log.Info($"cachePath is {cachePath}");
-    if (File.Exists(cachePath) && File.GetCreationTimeUtc(cachePath).AddMinutes(5) < DateTime.UtcNow)
+    var createdOn = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0);
+    var cnnString = ConfigurationManager.ConnectionStrings["SqlConnection"].ConnectionString;
+    using (var connection = new SqlConnection(cnnString))
     {
-        log.Info($"Reading from cachePath {cachePath}");
-        var cacheContents = File.ReadAllText(cachePath);
-        return Message(req, cacheContents);
+        connection.Open();
+        connection.Query<JiraEpicProgress>("select CreatedOn = @CreatedOn", new { CreatedOn = createdOn });
+        log.Info("Pulled JiraEpicProgress from database OK.");
     }
 
     string serviceUrl = ConfigurationManager.AppSettings["Jira.ServiceUrl"];
@@ -57,9 +57,6 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     }
 
     string json = JsonConvert.SerializeObject(graph);
-    if (File.Exists(cachePath))
-        File.Delete(cachePath);
-    File.WriteAllText(cachePath, json);
     return Message(req, json);
 }
 
@@ -161,3 +158,15 @@ class Board
         public String Title { get; set; }
         public decimal? Value { get; set; }
     }
+
+    /* Database */
+
+    public class JiraEpicProgress
+    {
+        public int Id { get; set; }
+        public string EpicName { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public int? Resolved { get; set; }
+        public int? InProgress { get; set; }
+        public string JiraId { get; set; }
+    } 
