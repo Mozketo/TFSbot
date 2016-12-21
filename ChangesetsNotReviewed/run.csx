@@ -13,6 +13,9 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     string from = req.GetQueryNameValuePairs()
         .FirstOrDefault(q => string.Compare(q.Key, "from", true) == 0)
         .Value;
+    string notReviewed = req.GetQueryNameValuePairs()
+        .FirstOrDefault(q => string.Compare(q.Key, "not-reviewed", true) == 0)
+        .Value;
 
     DateTime tryDate;
     int tryDays = 0;
@@ -28,6 +31,10 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     string tfsPath = ConfigurationManager.AppSettings["Tfs.Path"] ?? "$/";
 
     var tickets = TfsEx.GetHistory(log, tfsPath, dFrom);
+    if (!string.IsNullOrWhiteSpace(notReviewed))
+    {
+        tickets = TfsEx.NotReviewed(log, history); // Filter for not reviewed items
+    }
 
     string message = tickets.Count().ToString();
     return Message(req, message);
