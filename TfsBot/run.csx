@@ -72,7 +72,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             : $"All changesets reviewed from {from.ToString("dd-MMM")}";
 
         if (textParts[1].Equals("not-reviewed-count", StringComparison.OrdinalIgnoreCase))
-            message = tickes.Count();
+            message = tickets.Count();
 
         return Message(req, message);
     }
