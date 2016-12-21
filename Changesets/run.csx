@@ -42,8 +42,5 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
 static HttpResponseMessage Message(HttpRequestMessage req, string message)
 {
-    return req.CreateResponse(HttpStatusCode.OK, new
-    {
-        text = message
-    });
+    return req.CreateResponse(HttpStatusCode.OK, message);
 }
