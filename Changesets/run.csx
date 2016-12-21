@@ -33,7 +33,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     var tickets = TfsEx.GetHistory(log, tfsPath, dFrom);
     if (!string.IsNullOrWhiteSpace(notReviewed))
     {
-        tickets = TfsEx.NotReviewed(log, history); // Filter for not reviewed items
+        tickets = TfsEx.NotReviewed(log, tickets); // Filter for not reviewed items
     }
 
     string message = tickets.Count().ToString();
