@@ -14,14 +14,15 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         .FirstOrDefault(q => string.Compare(q.Key, "from", true) == 0)
         .Value;
 
-    int days = 0;
-    if (DateTime.TryParse(from, out dFrom))
+    DateTime tryDate;
+    int tryDays = 0;
+    if (DateTime.TryParse(from, out tryDate))
     {
-        // i guess that worked
+        dFrom = tryDate;
     }
-    else if (int.TryParse(from, out days))
+    else if (int.TryParse(from, out tryDays))
     {
-        dFrom = dFrom.Subtract(TimeSpan.FromDays(Math.Abs(days)));
+        dFrom = dFrom.Subtract(TimeSpan.FromDays(Math.Abs(tryDays)));
     }
 
     string tfsPath = ConfigurationManager.AppSettings["Tfs.Path"] ?? "$/";
