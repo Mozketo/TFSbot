@@ -45,13 +45,12 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     }
 
     string json = JsonConvert.SerializeObject(graph);
-
     return Message(req, json);
 }
 
 static HttpResponseMessage Message(HttpRequestMessage req, string message)
 {
-    return req.CreateResponse(HttpStatusCode.OK, message);
+    return req.CreateResponse(HttpStatusCode.OK, message, JsonMediaTypeFormatter.DefaultMediaType);
 }
 
 class Board
