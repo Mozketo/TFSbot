@@ -65,7 +65,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
         //graph.DataSequences.Add(sequence);
 
-        log.Info($"{sequence.Title} done");
+        log.Info($"{progress.EpicName} done");
     }
 
     using (var cnn = new SqlConnection(cnnString))
