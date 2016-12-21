@@ -1,50 +1,41 @@
 #load "..\extensions\TfsEx.csx"
 
-using Microsoft.TeamFoundation.Client;
-using Microsoft.TeamFoundation.VersionControl.Client;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
 {
+    DateTime dFrom = DateTime.Now.Subtract(TimeSpan.FromDays(1));
     string from = req.GetQueryNameValuePairs()
         .FirstOrDefault(q => string.Compare(q.Key, "from", true) == 0)
-        .Value ?? DateTime.Now.Subtract(TimeSpan.FromDays(1)).ToString();
-    DateTime dFrom = DateTime.Parse(from);
+        .Value;
+
+    int days = 0;
+    if (DateTime.TryParse(from, out dFrom))
+    {
+        // i guess that worked
+    }
+    else if (int.TryParse(from, out days))
+    {
+        dFrom = dFrom.Subtract(TimeSpan.FromDays(Math.Abs(days)));
+    }
 
     string tfsPath = ConfigurationManager.AppSettings["Tfs.Path"] ?? "$/";
 
-    var history = TfsEx.GetHistory(log, tfsPath, DateTime.Parse(from));
-    var tickets = NotReviewed(log, history);
+    var tickets = TfsEx.GetHistory(log, tfsPath, dFrom);
 
-    log.Info($"C# Timer trigger function executed at: {DateTime.Now}");  
-
-    if (tickets.Any())
-    {
-        return req.CreateResponse(HttpStatusCode.OK, new {
-            text = $"Changesets not reviewed from {dFrom.ToString("dd-MMM")}:\n{string.Join("\n", tickets.Select(t => t))}"
-        });
-    }
-
-    return !tickets.Any()
-        ? req.CreateResponse(HttpStatusCode.BadRequest, $"No tickets from date {from}")
-        : req.CreateResponse(HttpStatusCode.OK, $"{string.Join(", ", tickets.Select(t => t))}");
+    string message = tickets.Count().ToString();
+    return Message(req, message);
 }
 
-static IEnumerable<string> NotReviewed(TraceWriter log, IEnumerable<Changeset> history)
+static HttpResponseMessage Message(HttpRequestMessage req, string message)
 {
-    log.Info($"{history.Count()} changesets");
-
-    // Provide a list of all the jira IDs that appear in the changeset comments.
-    var tickets = history
-        .Where(cs => !ChangesetEx.IsReviewed(cs))
-        .Select(cs => $"CS:{cs.ChangesetId} by {cs.Committer} ({cs.CreationDate.ToString("dd-MMM")})");
-
-    //log.Info($"{tickets.Count()} Jira tickets found in {history.Count()} changesets");
-    //log.Info($"key in ({string.Join(", ", tickets.Select(t => t))})");
-
-    return tickets;
+    return req.CreateResponse(HttpStatusCode.OK, new
+    {
+        text = message
+    });
 }
