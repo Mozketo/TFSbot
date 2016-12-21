@@ -16,15 +16,15 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 {
     var formData = await req.Content.ReadAsFormDataAsync();
     var textParts = formData["text"].Split(' ');
-    var slackToken = formData["token"];
+    // var slackToken = formData["token"];
     var slackUsername = formData["user_name"];
     log.Info("text:" + formData["text"]);
 
-    if (!slackToken.Equals(ConfigurationManager.AppSettings["Slack.Token"]))
-    {
-        log.Info($"Slack token {slackToken} didn't match the expected token.");
-        return Message(req, "la la la TFSbot won't listen to you becuase - you know - token mismatch.");
-    }
+    // if (!slackToken.Equals(ConfigurationManager.AppSettings["Slack.Token"]))
+    // {
+    //     log.Info($"Slack token {slackToken} didn't match the expected token.");
+    //     return Message(req, "la la la TFSbot won't listen to you becuase - you know - token mismatch.");
+    // }
 
     // When no arguments are passed then provide a hint to the user about tfsbot.
     if (!textParts.Any() || textParts.Count() == 1 || formData["text"].IndexOf("help", StringComparison.OrdinalIgnoreCase) > -1)
@@ -46,7 +46,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         }
     }
 
-    if (textParts[1].Equals("not-reviewed", StringComparison.OrdinalIgnoreCase))
+    if (textParts[1].Equals("not-reviewed", StringComparison.OrdinalIgnoreCase) || textParts[1].Equals("not-reviewed-count", StringComparison.OrdinalIgnoreCase))
     {
         // Allow days for input here
         var d = textParts.Count() > 2 ? textParts.Skip(2).FirstOrDefault() : string.Empty;
@@ -70,6 +70,10 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         var message = tickets.Any()
             ? $"Changesets not reviewed from {from.ToString("dd-MMM")}:\n{string.Join("\n", tickets.Select(t => t))}"
             : $"All changesets reviewed from {from.ToString("dd-MMM")}";
+
+        if (textParts[1].Equals("not-reviewed-count", StringComparison.OrdinalIgnoreCase))
+            message = tickes.Count();
+
         return Message(req, message);
     }
     else if (textParts[1].Equals("missing-jira", StringComparison.OrdinalIgnoreCase))
