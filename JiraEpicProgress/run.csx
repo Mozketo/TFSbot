@@ -6,7 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json; 
+using Newtonsoft.Json;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
 {

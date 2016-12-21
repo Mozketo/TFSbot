@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 
-internal class TfsEx
+internal class JiraEx
 {
     /// <summary>
     /// Sends a request to the Jira API with (string) method and the (string) url.
