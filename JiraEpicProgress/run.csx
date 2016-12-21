@@ -12,10 +12,12 @@ using Newtonsoft.Json;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
 {
-    string cachePath = Path.Combine(Path.GetTempPath(), "jira-epic-cache.txt");
+    string folder = Environment.ExpandEnvironmentVariables(@"%HOME%");
+    string cachePath = Path.Combine(folder, "jira-epic-cache.txt");
+    log.Info($"cachePath is {cachePath}");
     if (File.Exists(cachePath) && File.GetCreationTimeUtc(cachePath).AddMinutes(5) < DateTime.UtcNow)
     {
-        log.Info($"Reading from temp {cachePath}");
+        log.Info($"Reading from cachePath {cachePath}");
         var cacheContents = File.ReadAllText(cachePath);
         return Message(req, cacheContents);
     }
