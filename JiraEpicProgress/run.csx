@@ -3,6 +3,7 @@
 using System;
 using System.Configuration;
 using System.Linq;
+using System.Path;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
@@ -11,6 +12,14 @@ using Newtonsoft.Json;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
 {
+    string cachePath = Path.Combine(Path.GetTempPath(), "jira-epic-cache.txt");
+    if (File.Exists(cachePath) && File.GetCreationTimeUtc(cachePath).AddMinutes(5) < DateTime.UtcNow)
+    {
+        log.Info($"Reading from temp {cachePath}");
+        var cacheContents = File.ReadAllText(cachePath);
+        return Message(req, cacheContents);
+    }
+
     string serviceUrl = ConfigurationManager.AppSettings["Jira.ServiceUrl"];
     string username = ConfigurationManager.AppSettings["Jira.Username"];
     string password = ConfigurationManager.AppSettings["Jira.Password"];
@@ -46,6 +55,9 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     }
 
     string json = JsonConvert.SerializeObject(graph);
+    if (File.Exists(cachePath))
+        File.Delete(cachePath);
+    File.WriteAllText(cachePath, json);
     return Message(req, json);
 }
 
