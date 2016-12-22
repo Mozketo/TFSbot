@@ -42,5 +42,9 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
 static HttpResponseMessage Message(HttpRequestMessage req, string message)
 {
-    return req.CreateResponse(HttpStatusCode.OK, message);
+    var response = req.CreateResponse();
+    response.Content = new StringContent(message);
+    response.Content.Headers.ContentType = new MediaTypeHeaderValue("text/plain");
+    return response;
+    //return req.CreateResponse(HttpStatusCode.OK, message);
 }
