@@ -21,11 +21,14 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     {
         cnn.Open();
         var existingProgress = cnn.Query<JiraEpicProgress>("select * from JiraEpicProgress where CreatedOn=@CreatedOn", new { CreatedOn = createdOn });
-        log.Info($"Pulled {existing.Count()} JiraEpicProgress from database OK.");
+        log.Info($"Pulled {existingProgress.Count()} JiraEpicProgress from database OK.");
 
-        var graph = ToGraph(existingProgress);
-        string json = JsonConvert.SerializeObject(graph);
-        return Message(req, json);
+        if (existingProgress.Count() > 0)
+        {
+            var graph = ToGraph(existingProgress);
+            string json = JsonConvert.SerializeObject(graph);
+            return Message(req, json);
+        }
     }
 
     string serviceUrl = ConfigurationManager.AppSettings["Jira.ServiceUrl"];
