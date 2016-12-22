@@ -68,6 +68,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         log.Info($"{progress.EpicName} done");
     }
 
+    // Now that all the data has been retrieved pump it into the DB
     using (var cnn = new SqlConnection(cnnString))
     {
         cnn.Open();
