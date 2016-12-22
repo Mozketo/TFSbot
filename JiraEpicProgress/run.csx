@@ -223,8 +223,8 @@ public class JiraEpicProgress
     public int Id { get; set; }
     public string EpicName { get; set; }
     public DateTime CreatedOn { get; set; }
-    public int? Resolved { get; set; }
-    public int? InProgress { get; set; }
+    public int Resolved { get; set; }
+    public int InProgress { get; set; }
     public decimal TicketProgress 
     { 
         get 
