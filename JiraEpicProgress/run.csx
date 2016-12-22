@@ -231,7 +231,7 @@ public class JiraEpicProgress
         {
             if (InProgress == 0 || Resolved == 0)
                 return 0; 
-            return (int)((decimal)InProgress / (InProgress + Resolved) * 100;
+            return (int)(((decimal)InProgress / (InProgress + Resolved) * 100);
         }
     }
     public string JiraId { get; set; }
