@@ -46,7 +46,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     var epicProgress = new List<JiraEpicProgress>();
     foreach (var epic in epics)
     {
-        var issues = JiraEx.Get<IEnumerable<Issue>>(serviceUrl, $"/rest/agile/1.0/epic/{epic.Key}/issue?fields=project,resolution,status", username, password, "issues")
+        var issues = JiraEx.Get<IEnumerable<Issue>>(serviceUrl, $"/rest/agile/1.0/epic/{epic.Key}/issue?fields=project,resolution,status&maxResults=250", username, password, "issues")
             .ToList();
         var resolved = issues.GroupBy(i => i.IsResolved)
             .Select(group => new
