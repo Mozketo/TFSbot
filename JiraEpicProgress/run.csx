@@ -60,8 +60,8 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             JiraId = epic.Key,
             CreatedOn = createdOn,
             EpicName = epic.Fields.Summary,
-            Resolved = resolved.FirstOrDefault(v => v.Resolved)?.Count,
-            InProgress = resolved.FirstOrDefault(v => !v.Resolved)?.Count
+            Resolved = resolved.FirstOrDefault(v => v.Resolved)?.Count ?? 0,
+            InProgress = resolved.FirstOrDefault(v => !v.Resolved)?.Count ?? 0
         };
         epicProgress.Add(progress);
 
@@ -225,6 +225,14 @@ public class JiraEpicProgress
     public DateTime CreatedOn { get; set; }
     public int? Resolved { get; set; }
     public int? InProgress { get; set; }
-    public int TicketProgress => (int)((decimal)InProgress / Resolved) * 100;
+    public int TicketProgress 
+    { 
+        get 
+        {
+            if (InProgress == 0 || Resolved == 0)
+                return 0; 
+            return (int)((decimal)InProgress / Resolved) * 100;
+        }
+    }
     public string JiraId { get; set; }
 } 
