@@ -20,7 +20,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     using (var cnn = new SqlConnection(cnnString))
     {
         cnn.Open();
-        var existing = cnn.Query<JiraEpicProgress>("select CreatedOn = @CreatedOn", new { CreatedOn = createdOn });
+        var existing = cnn.Query<JiraEpicProgress>("select * from JiraEpicProgress where CreatedOn=@CreatedOn", new { CreatedOn = createdOn });
         log.Info($"Pulled {existing.Count()} JiraEpicProgress from database OK.");
     }
 
