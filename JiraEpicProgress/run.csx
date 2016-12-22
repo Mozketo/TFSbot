@@ -80,8 +80,8 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
         foreach (var progress in epicProgress)
         {
-            cnn.Execute("insert JiraEpicProgress(EpicName, CreatedOn, Resolved, InProgress, JiraId) values(@epicName, @createdOn, @resolved, @inProgress, @jiraId)",
-                new { progress.EpicName, progress.CreatedOn, progress.Resolved, progress.InProgress, progress.JiraId }
+            cnn.Execute("insert JiraEpicProgress(EpicName, CreatedOn, Resolved, InProgress, JiraId, TicketProgress) values(@epicName, @createdOn, @resolved, @inProgress, @jiraId, @ticketProgress)",
+                new { progress.EpicName, progress.CreatedOn, progress.Resolved, progress.InProgress, progress.JiraId, progress.TicketProgress }
             );
         }
         log.Info("Log added to database successfully!");
@@ -225,5 +225,6 @@ public class JiraEpicProgress
     public DateTime CreatedOn { get; set; }
     public int? Resolved { get; set; }
     public int? InProgress { get; set; }
+    public int TicketProgress { get { return ((decimal)inProgress ?? 0 / resolved ?? 0) * 100; } }
     public string JiraId { get; set; }
 } 
