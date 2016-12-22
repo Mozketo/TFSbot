@@ -38,7 +38,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
 
     // Get Epics linked to teams based on a status
     var jql = "type=epic and \"Scrum Team\" in (Faust, Mako, Dropbear, Esperanto, Morpheus, Indy) and status in (\"in progress\")";
-    var epics = JiraEx.Get<IEnumerable<Issue>>(serviceUrl, $"/rest/api/2/search?jql={jql}&fields=summary,project,resolution,status&maxResults=250", username, password, "issues")
+    var epics = JiraEx.Get<IEnumerable<Issue>>(serviceUrl, $"/rest/api/2/search?jql={jql}&fields=summary,project,resolution,status,customfield_12000&maxResults=250", username, password, "issues")
         .ToList();
 
     log.Info($"Found {epics.Count()} epics");
@@ -61,27 +61,20 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             CreatedOn = createdOn,
             EpicName = epic.Fields.Summary,
             Resolved = resolved.FirstOrDefault(v => v.Resolved)?.Count ?? 0,
-            InProgress = resolved.FirstOrDefault(v => !v.Resolved)?.Count ?? 0
+            InProgress = resolved.FirstOrDefault(v => !v.Resolved)?.Count ?? 0,
+            Team = epic.Team
         };
         epicProgress.Add(progress);
-
-        //var sequence = new GraphSequence { Title = epic.Fields?.Summary, DataPoints = new List<GraphPoint>() };
-        //sequence.DataPoints.Add(new GraphPoint { Title = "Resolved", Value = resolved.FirstOrDefault(v => v.Resolved)?.Count });
-        //sequence.DataPoints.Add(new GraphPoint { Title = "In Progress", Value = resolved.FirstOrDefault(v => !v.Resolved)?.Count });
-
-        //graph.DataSequences.Add(sequence);
-
         log.Info($"{progress.EpicName} done");
     }
 
     using (var cnn = new SqlConnection(cnnString))
     {
         cnn.Open();
-
         foreach (var progress in epicProgress)
         {
-            cnn.Execute("insert JiraEpicProgress(EpicName, CreatedOn, Resolved, InProgress, JiraId, TicketProgress) values(@epicName, @createdOn, @resolved, @inProgress, @jiraId, @ticketProgress)",
-                new { progress.EpicName, progress.CreatedOn, progress.Resolved, progress.InProgress, progress.JiraId, progress.TicketProgress }
+            cnn.Execute("insert JiraEpicProgress(EpicName, CreatedOn, Resolved, InProgress, JiraId, TicketProgress, Team) values(@epicName, @createdOn, @resolved, @inProgress, @jiraId, @ticketProgress, @team)",
+                new { progress.EpicName, progress.CreatedOn, progress.Resolved, progress.InProgress, progress.JiraId, progress.TicketProgress, progress.Team }
             );
         }
         log.Info("Log added to database successfully!");
@@ -108,11 +101,6 @@ static Graph ToGraph(IEnumerable<JiraEpicProgress> epicProgress)
 
     return graph;
 }
-
-// static HttpResponseMessage Message(HttpRequestMessage req, string message)
-// {
-//     return req.CreateResponse(HttpStatusCode.OK, message, JsonMediaTypeFormatter.DefaultMediaType);
-// }
 
 static HttpResponseMessage Message(HttpRequestMessage req, string message)
 {
@@ -147,6 +135,7 @@ class Issue
     public int? StatusId => Fields?.Status?.Id;
     public string Project => Fields?.Project?.Key;
     public bool IsResolved => Fields?.Resolution?.IsResolved ?? false;
+    public string Team => Fields?.customfield_12000?.Value;
 
     public Fields Fields { get; set; }
 }
@@ -157,6 +146,12 @@ class Fields
     public Status Status { get; set; }
     public Project Project { get; set; }
     public Resolution Resolution { get; set; }
+    public Team customfield_12000 { get; set; }
+}
+
+class Team
+{
+    public string Value { get; set; }
 }
 
 class Status
@@ -235,4 +230,5 @@ public class JiraEpicProgress
         }
     }
     public string JiraId { get; set; }
+    public string Team { get; set; }
 } 
