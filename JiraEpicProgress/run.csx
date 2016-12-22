@@ -9,6 +9,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
@@ -108,9 +109,17 @@ static Graph ToGraph(IEnumerable<JiraEpicProgress> epicProgress)
     return graph;
 }
 
+// static HttpResponseMessage Message(HttpRequestMessage req, string message)
+// {
+//     return req.CreateResponse(HttpStatusCode.OK, message, JsonMediaTypeFormatter.DefaultMediaType);
+// }
+
 static HttpResponseMessage Message(HttpRequestMessage req, string message)
 {
-    return req.CreateResponse(HttpStatusCode.OK, message, JsonMediaTypeFormatter.DefaultMediaType);
+    var response = req.CreateResponse();
+    response.Content = new StringContent(message);
+    response.Content.Headers.ContentType = JsonMediaTypeFormatter.DefaultMediaType;
+    return response;
 }
 
 class Board
