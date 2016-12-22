@@ -20,8 +20,12 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     using (var cnn = new SqlConnection(cnnString))
     {
         cnn.Open();
-        var existing = cnn.Query<JiraEpicProgress>("select * from JiraEpicProgress where CreatedOn=@CreatedOn", new { CreatedOn = createdOn });
+        var existingProgress = cnn.Query<JiraEpicProgress>("select * from JiraEpicProgress where CreatedOn=@CreatedOn", new { CreatedOn = createdOn });
         log.Info($"Pulled {existing.Count()} JiraEpicProgress from database OK.");
+
+        var graph = ToGraph(existingProgress);
+        string json = JsonConvert.SerializeObject(graph);
+        return Message(req, json);
     }
 
     string serviceUrl = ConfigurationManager.AppSettings["Jira.ServiceUrl"];
@@ -34,8 +38,6 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         .ToList();
 
     log.Info($"Found {epics.Count()} epics");
-
-    var graph = new Graph { Title = "Epic Progress", DataSequences = new List<GraphSequence>() };
 
     var epicProgress = new List<JiraEpicProgress>();
     foreach (var epic in epics)
@@ -81,8 +83,26 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         log.Info("Log added to database successfully!");
     }
 
-    string json = JsonConvert.SerializeObject(graph);
-    return Message(req, json);
+    {
+        var graph = ToGraph(epicProgress);
+        string json = JsonConvert.SerializeObject(graph);
+        return Message(req, json);
+    }
+}
+
+static Graph ToGraph(IEnumerable<JiraEpicProgress> epicProgress)
+{
+    var graph = new Graph { Title = "Epic Progress", DataSequences = new List<GraphSequence>() };
+
+    foreach (var epic in epicProgress)
+    {
+        var sequence = new GraphSequence { Title = epic.EpicName, DataPoints = new List<GraphPoint>() };
+        sequence.DataPoints.Add(new GraphPoint { Title = "Resolved", Value = epic.Resolved });
+        sequence.DataPoints.Add(new GraphPoint { Title = "In Progress", Value = epic.InProgress });
+        graph.DataSequences.Add(sequence);
+    }
+
+    return graph;
 }
 
 static HttpResponseMessage Message(HttpRequestMessage req, string message)
