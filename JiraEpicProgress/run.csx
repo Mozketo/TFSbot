@@ -229,7 +229,7 @@ public class JiraEpicProgress
     { 
         get 
         {
-            if (InProgress == 0) return 100;
+            if (InProgress == 0) return 1;
             if (Resolved == 0) return 0; 
             return ((decimal)Resolved / (InProgress + Resolved));
         }
