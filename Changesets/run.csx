@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
