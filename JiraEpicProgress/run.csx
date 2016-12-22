@@ -225,6 +225,6 @@ public class JiraEpicProgress
     public DateTime CreatedOn { get; set; }
     public int? Resolved { get; set; }
     public int? InProgress { get; set; }
-    public int TicketProgress { get { return ((decimal)InProgress ?? 0 / Resolved ?? 0) * 100; } }
+    public int TicketProgress => (int)((decimal)InProgress / Resolved) * 100;
     public string JiraId { get; set; }
 } 
