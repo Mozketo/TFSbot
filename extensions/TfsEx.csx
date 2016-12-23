@@ -149,7 +149,7 @@ internal class TfsEx
     internal static IEnumerable<string> GetJiraIds(TraceWriter log, IEnumerable<Changeset> history, IEnumerable<string> ignoreJiraProjects)
     {
         log.Info($"{history.Count()} changesets");
-        log.Info($"Ignoring these projects: {string.Join(", ", ignoreJiraProjects)}")
+        log.Info($"Ignoring these projects: {string.Join(", ", ignoreJiraProjects)}");
     
         // Provide a list of all the jira IDs that appear in the changeset comments.
         var tickets = history.SelectMany(cs => JiraEx.JiraIds(cs.Comment))
