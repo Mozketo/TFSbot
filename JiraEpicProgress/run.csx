@@ -76,10 +76,10 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         cnn.Open();
         foreach (var progress in epicProgress)
         {
-            cnn.Execute("insert JiraEpicProgress(EpicName, CreatedOn, TicketsDone, TicketsInDev, TicketsInTest, TicketsTodo, JiraId, TicketProgress, Team) values(@epicName, @createdOn, @TicketsDone, @TicketsInDev, @TicketsInTest, @TicketsTodo, @jiraId, @ticketProgress, @team)",
+            cnn.Execute("insert JiraEpicProgress(EpicName, CreatedOn, TicketsDone, TicketsInDev, TicketsInTest, TicketsTodo, JiraId, Team) values(@epicName, @createdOn, @TicketsDone, @TicketsInDev, @TicketsInTest, @TicketsTodo, @jiraId, @team)",
                 new { progress.EpicName, progress.CreatedOn, 
                     progress.TicketsDone, progress.TicketsInDev, progress.TicketsInTest, progress.TicketsTodo,
-                    progress.JiraId, progress.TicketProgress, progress.Team }
+                    progress.JiraId, progress.Team }
             );
         }
         log.Info("Log added to database successfully!");
@@ -99,8 +99,8 @@ static Graph ToGraph(IEnumerable<JiraEpicProgress> epicProgress)
     foreach (var epic in epicProgress)
     {
         var sequence = new GraphSequence { Title = epic.EpicName, DataPoints = new List<GraphPoint>() };
-        sequence.DataPoints.Add(new GraphPoint { Title = "Resolved", Value = epic.Resolved });
-        sequence.DataPoints.Add(new GraphPoint { Title = "In Progress", Value = epic.InProgress });
+        sequence.DataPoints.Add(new GraphPoint { Title = "Resolved", Value = epic.TicketsDone });
+        sequence.DataPoints.Add(new GraphPoint { Title = "In Progress", Value = epic.TicketsInDev });
         graph.DataSequences.Add(sequence);
     }
 
@@ -187,15 +187,15 @@ sealed class ColumnStatus
     public string Self { get; set; }
 }
 
-// class Resolution
-// {
-//     static IEnumerable<string> Resolved = new List<string> { "Fixed", "Done", "Closed", "Won't do" };
+class Resolution
+{
+    static IEnumerable<string> Resolved = new List<string> { "Fixed", "Done", "Closed", "Won't do" };
 
-//     public int Id { get; set; }
-//     public string Name { get; set; }
+    public int Id { get; set; }
+    public string Name { get; set; }
 
-//     public bool IsResolved => Resolved.Any(res => Name.Equals(res, StringComparison.OrdinalIgnoreCase));
-// }
+    public bool IsResolved => Resolved.Any(res => Name.Equals(res, StringComparison.OrdinalIgnoreCase));
+}
 
 /* Dash graph */
 sealed class Graph
