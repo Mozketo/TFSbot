@@ -48,10 +48,10 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     {
         var issues = JiraEx.Get<IEnumerable<Issue>>(serviceUrl, $"/rest/agile/1.0/epic/{epic.Key}/issue?fields=project,resolution,status&maxResults=250", username, password, "issues")
             .ToList();
-        var resolved = issues.GroupBy(i => i.IsResolved)
+        var statusCounts = issues.GroupBy(i => i.Status)
             .Select(group => new
             {
-                Resolved = group.Key,
+                Status = group.Key,
                 Count = group.Count()
             });
 
@@ -60,8 +60,10 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             JiraId = epic.Key,
             CreatedOn = createdOn,
             EpicName = epic.Fields.Summary,
-            Resolved = resolved.FirstOrDefault(v => v.Resolved)?.Count ?? 0,
-            InProgress = resolved.FirstOrDefault(v => !v.Resolved)?.Count ?? 0,
+            TicketsDone = statusCounts.FirstOrDefault(v => v.Status == "Todo")?.Count ?? 0,
+            TicketsInDev = statusCounts.FirstOrDefault(v => v.Status == "InDev")?.Count ?? 0,
+            TicketsInTest = statusCounts.FirstOrDefault(v => v.Status == "InTest")?.Count ?? 0,
+            TicketsTodo = statusCounts.FirstOrDefault(v => v.Status == "Done")?.Count ?? 0,
             Team = epic.Team
         };
         epicProgress.Add(progress);
@@ -74,8 +76,10 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         cnn.Open();
         foreach (var progress in epicProgress)
         {
-            cnn.Execute("insert JiraEpicProgress(EpicName, CreatedOn, Resolved, InProgress, JiraId, TicketProgress, Team) values(@epicName, @createdOn, @resolved, @inProgress, @jiraId, @ticketProgress, @team)",
-                new { progress.EpicName, progress.CreatedOn, progress.Resolved, progress.InProgress, progress.JiraId, progress.TicketProgress, progress.Team }
+            cnn.Execute("insert JiraEpicProgress(EpicName, CreatedOn, TicketsDone, TicketsInDev, TicketsInTest, TicketsTodo, JiraId, TicketProgress, Team) values(@epicName, @createdOn, @TicketsDone, @TicketsInDev, @TicketsInTest, @TicketsTodo, @jiraId, @ticketProgress, @team)",
+                new { progress.EpicName, progress.CreatedOn, 
+                    progress.TicketsDone, progress.TicketsInDev, progress.TicketsInTest, progress.TicketsTodo,
+                    progress.JiraId, progress.TicketProgress, progress.Team }
             );
         }
         log.Info("Log added to database successfully!");
@@ -111,7 +115,7 @@ static HttpResponseMessage Message(HttpRequestMessage req, string message)
     return response;
 }
 
-class Board
+sealed class Board
 {
     public int Id { get; set; }
     public string Self { get; set; }
@@ -119,7 +123,7 @@ class Board
     public string Type { get; set; }
 }
 
-class Epic
+sealed class Epic
 {
     public int Id { get; set; }
     public string Self { get; set; }
@@ -128,7 +132,7 @@ class Epic
     public bool Done { get; set; }
 }
 
-class Issue
+sealed class Issue
 {
     public string Key { get; set; }
 
@@ -141,7 +145,7 @@ class Issue
     public Fields Fields { get; set; }
 }
 
-class Fields
+sealed class Fields
 {
     public string Summary { get; set; }
     public Status Status { get; set; }
@@ -150,63 +154,63 @@ class Fields
     public Team customfield_12000 { get; set; }
 }
 
-class Team
+sealed class Team
 {
     public string Value { get; set; }
 }
 
-class Status
+sealed class Status
 {
     public string Name { get; set; }
     public int Id { get; set; }
 }
 
-class Project
+sealed class Project
 {
     public string Key { get; set; }
 }
 
-class ColumnConfig
+sealed class ColumnConfig
 {
     public IEnumerable<Columns> Columns { get; set; }
 }
 
-class Columns
+sealed class Columns
 {
     public string Name { get; set; }
     public IEnumerable<ColumnStatus> Statuses { get; set; }
 }
 
-class ColumnStatus
+sealed class ColumnStatus
 {
     public int Id { get; set; }
     public string Self { get; set; }
 }
 
-class Resolution
-{
-    static IEnumerable<string> Resolved = new List<string> { "Fixed", "Done", "Closed", "Won't do" };
+// class Resolution
+// {
+//     static IEnumerable<string> Resolved = new List<string> { "Fixed", "Done", "Closed", "Won't do" };
 
-    public int Id { get; set; }
-    public string Name { get; set; }
+//     public int Id { get; set; }
+//     public string Name { get; set; }
 
-    public bool IsResolved => Resolved.Any(res => Name.Equals(res, StringComparison.OrdinalIgnoreCase));
-}
+//     public bool IsResolved => Resolved.Any(res => Name.Equals(res, StringComparison.OrdinalIgnoreCase));
+// }
 
 /* Dash graph */
-class Graph
+sealed class Graph
 {
     public string Title { get; set; }
     public IList<GraphSequence> DataSequences { get; set; }
 }
 
-class GraphSequence
+sealed class GraphSequence
 {
     public string Title { get; set; }
     public IList<GraphPoint> DataPoints { get; set; }
 }
 
-class GraphPoint
+sealed class GraphPoint
 {
     public String Title { get; set; }
     public decimal? Value { get; set; }
@@ -214,22 +218,17 @@ class GraphPoint
 
 /* Database */
 
-public class JiraEpicProgress
+sealed class JiraEpicProgress
 {
     public int Id { get; set; }
     public string EpicName { get; set; }
     public DateTime CreatedOn { get; set; }
-    public int Resolved { get; set; }
-    public int InProgress { get; set; }
-    public decimal TicketProgress 
-    { 
-        get 
-        {
-            if (InProgress == 0) return 1;
-            if (Resolved == 0) return 0; 
-            return ((decimal)Resolved / (InProgress + Resolved));
-        }
-    }
+    public int TicketsDone { get; set; }
+    public int TicketsInDev { get; set; }
+    public int TicketsInTest { get; set; }
+    public int TicketsTodo { get; set; }
+    public int PointsTodo { get; set; }
+    public int PointsDone { get; set; }
     public string JiraId { get; set; }
     public string Team { get; set; }
 } 
