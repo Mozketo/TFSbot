@@ -60,10 +60,10 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             JiraId = epic.Key,
             CreatedOn = createdOn,
             EpicName = epic.Fields.Summary,
-            TicketsDone = statusCounts.FirstOrDefault(v => v.Status == "Todo")?.Count ?? 0,
+            TicketsDone = statusCounts.FirstOrDefault(v => v.Status == "Done")?.Count ?? 0,
             TicketsInDev = statusCounts.FirstOrDefault(v => v.Status == "InDev")?.Count ?? 0,
             TicketsInTest = statusCounts.FirstOrDefault(v => v.Status == "InTest")?.Count ?? 0,
-            TicketsTodo = statusCounts.FirstOrDefault(v => v.Status == "Done")?.Count ?? 0,
+            TicketsTodo = statusCounts.FirstOrDefault(v => v.Status == "Todo")?.Count ?? 0,
             Team = epic.Team
         };
         epicProgress.Add(progress);
@@ -77,9 +77,17 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         foreach (var progress in epicProgress)
         {
             cnn.Execute("insert JiraEpicProgress(EpicName, CreatedOn, TicketsDone, TicketsInDev, TicketsInTest, TicketsTodo, JiraId, Team) values(@epicName, @createdOn, @TicketsDone, @TicketsInDev, @TicketsInTest, @TicketsTodo, @jiraId, @team)",
-                new { progress.EpicName, progress.CreatedOn, 
-                    progress.TicketsDone, progress.TicketsInDev, progress.TicketsInTest, progress.TicketsTodo,
-                    progress.JiraId, progress.Team }
+                new
+                {
+                    progress.EpicName,
+                    progress.CreatedOn,
+                    progress.TicketsDone,
+                    progress.TicketsInDev,
+                    progress.TicketsInTest,
+                    progress.TicketsTodo,
+                    progress.JiraId,
+                    progress.Team
+                }
             );
         }
         log.Info("Log added to database successfully!");
@@ -161,7 +169,27 @@ sealed class Team
 
 sealed class Status
 {
-    public string Name { get; set; }
+    static Dictionary<string, IEnumerable<string>> Lookup = new Dictionary<string, IEnumerable<string>>
+    {
+        { "Todo", new List<string> { "Open", "todo", "To do", "Ready for Dev", "on hold", "awaiting clarification", "detail", "draft", "in review", "in janison review", "waiting on client", "queued", "outline" } },
+        { "InDev", new List<string> { "In Progress", "Dev in progress" } },
+        { "InTest", new List<string> { "Testing", "Janison testing", "waiting for build", "waiting for testing build" } },
+        { "Done", new List<string> { "Fixed", "Done", "Closed", "Won't do", "waiting for sit deploy", "resolved", "esa testing", "in esa review" } }
+    };
+
+    string _name;
+    public string Name
+    {
+        get
+        {
+            string lookupName = Lookup.First(l => l.Value.Any(v => v.Equals(_name, StringComparison.OrdinalIgnoreCase))).Key;
+            return lookupName;
+        }
+        set
+        {
+            _name = value;
+        }
+    }
     public int Id { get; set; }
 }
 
