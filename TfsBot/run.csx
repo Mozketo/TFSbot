@@ -94,7 +94,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         var history = TfsEx.GetHistory(log, tfsPath, from);
         var tickets = TfsEx.GetJiraIds(log, history, ignoreJiraProjects);
 
-        return Message(req, $"Jira activity from {from.ToString("dd-MMM")}.\n\nkey in ({string.Join(", ", tickets.Select(t => t))})");
+        return Message(req, $"Jira activity from {from.ToString("dd-MMM")}, {tickets.Count()} tickets.\n\nkey in ({string.Join(", ", tickets.Select(t => t))})");
     }
     else if (textParts[1].Equals("search", StringComparison.OrdinalIgnoreCase) && textParts.Count() > 2)
     {
