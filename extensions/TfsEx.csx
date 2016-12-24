@@ -153,7 +153,7 @@ internal class TfsEx
     
         // Provide a list of all the jira IDs that appear in the changeset comments.
         var tickets = history.SelectMany(cs => JiraEx.JiraIds(cs.Comment))
-            .Where(jiraId => ignoreJiraProjects.Any(proj => jiraId.IndexOf(proj, StringComparison.OrdinalIgnoreCase) == -1))
+            .Where(jiraId => !ignoreJiraProjects.Any(proj => jiraId.IndexOf(proj, StringComparison.OrdinalIgnoreCase) > -1))
             .Distinct();
     
         log.Info($"{tickets.Count()} Jira tickets found in {history.Count()} changesets");

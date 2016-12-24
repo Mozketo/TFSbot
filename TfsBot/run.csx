@@ -88,7 +88,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     }
     else if (textParts[1].Equals("tickets", StringComparison.OrdinalIgnoreCase))
     {
-        // Ignore Jira projects like: Release SHD esd ops qa.
+        // Ignore Jira projects like: Release SHD esd ops qa
         IEnumerable<string> ignoreJiraProjects = (ConfigurationManager.AppSettings["Jira.IgnoreProjects"] ?? string.Empty).Split(' ').Select(s => s.Trim());
 
         var history = TfsEx.GetHistory(log, tfsPath, from);
