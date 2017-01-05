@@ -92,6 +92,10 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         IEnumerable<string> ignoreJiraProjects = (ConfigurationManager.AppSettings["Jira.IgnoreProjects"] ?? string.Empty).Split(' ').Select(s => s.Trim());
 
         var history = TfsEx.GetHistory(log, tfsPath, from);
+
+        // Don't get Jira IDs from merged changesets
+        history = history.Where(cs => cs.Comment.IndexOf("merg", StringComparison.OrdinalIgnoreCase) == -1);
+
         var tickets = TfsEx.GetJiraIds(log, history, ignoreJiraProjects);
 
         return Message(req, $"Jira activity from {from.ToString("dd-MMM")}, {tickets.Count()} tickets.\n\nkey in ({string.Join(", ", tickets.Select(t => t))})");
