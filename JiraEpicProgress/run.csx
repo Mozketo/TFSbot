@@ -35,9 +35,9 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     string serviceUrl = ConfigurationManager.AppSettings["Jira.ServiceUrl"];
     string username = ConfigurationManager.AppSettings["Jira.Username"];
     string password = ConfigurationManager.AppSettings["Jira.Password"];
+    string jql = ConfigurationManager.AppSettings["Jira.Jql.Epics"];
 
     // Get Epics linked to teams based on a status
-    var jql = "type=epic and \"Scrum Team\" in (Faust, Mako, Dropbear, Esperanto, Morpheus, Indy) and status in (\"in progress\")";
     var epics = JiraEx.Get<IEnumerable<Issue>>(serviceUrl, $"/rest/api/2/search?jql={jql}&fields=summary,project,resolution,status,customfield_12000&maxResults=250", username, password, "issues")
         .ToList();
 
