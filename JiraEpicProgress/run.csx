@@ -188,7 +188,7 @@ sealed class Status
     {
         { "Todo", new List<string> { "Open", "todo", "To do", "Ready for Dev", "on hold", "awaiting clarification", "detail", "draft", "in review", "in janison review", "waiting on client", "queued", "outline" } },
         { "InDev", new List<string> { "In Progress", "Dev in progress" } },
-        { "InTest", new List<string> { "Testing", "Janison testing", "waiting for build", "waiting for testing build" } },
+        { "InTest", new List<string> { "Testing", "Janison testing", "waiting for build", "waiting for testing build", "beta testing" } },
         { "Done", new List<string> { "Fixed", "Done", "Closed", "Won't do", "waiting for sit deploy", "resolved", "esa testing", "in esa review" } }
     };
 
