@@ -46,13 +46,19 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     var epicProgress = new List<JiraEpicProgress>();
     foreach (var epic in epics)
     {
-        var issues = JiraEx.Get<IEnumerable<Issue>>(serviceUrl, $"/rest/agile/1.0/epic/{epic.Key}/issue?fields=project,resolution,status&maxResults=250", username, password, "issues")
+        var issues = JiraEx.Get<IEnumerable<Issue>>(serviceUrl, $"/rest/agile/1.0/epic/{epic.Key}/issue?fields=project,resolution,status,customfield_10004&maxResults=250", username, password, "issues")
             .ToList();
         var statusCounts = issues.GroupBy(i => i.Status)
             .Select(group => new
             {
                 Status = group.Key,
                 Count = group.Count()
+            });
+        var points = issues.GroupBy(i => i.Status)
+            .Select(group => new
+            {
+                Status = group.Key,
+                StoryPoints = group.Sum(i => i.StoryPoints)
             });
 
         var progress = new JiraEpicProgress
@@ -64,7 +70,9 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             TicketsInDev = statusCounts.FirstOrDefault(v => v.Status == "InDev")?.Count ?? 0,
             TicketsInTest = statusCounts.FirstOrDefault(v => v.Status == "InTest")?.Count ?? 0,
             TicketsTodo = statusCounts.FirstOrDefault(v => v.Status == "Todo")?.Count ?? 0,
-            Team = epic.Team
+            PointsDone = (int)(points.FirstOrDefault(v => v.Status == "Done")?.StoryPoints ?? 0),
+            PointsTodo = (int)(points.Where(v => v.Status != "Done").Select(v => v.StoryPoints).Sum()),
+            Team = epic.Team,
         };
         epicProgress.Add(progress);
         log.Info($"{progress.EpicName} done");
@@ -76,7 +84,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
         cnn.Open();
         foreach (var progress in epicProgress)
         {
-            cnn.Execute("insert JiraEpicProgress(EpicName, CreatedOn, TicketsDone, TicketsInDev, TicketsInTest, TicketsTodo, JiraId, Team) values(@epicName, @createdOn, @TicketsDone, @TicketsInDev, @TicketsInTest, @TicketsTodo, @jiraId, @team)",
+            cnn.Execute("insert JiraEpicProgress(EpicName, CreatedOn, TicketsDone, TicketsInDev, TicketsInTest, TicketsTodo, JiraId, Team, PointsDone, PointsTodo) values(@epicName, @createdOn, @TicketsDone, @TicketsInDev, @TicketsInTest, @TicketsTodo, @jiraId, @team, @PointsDone, @PointsTodo)",
                 new
                 {
                     progress.EpicName,
@@ -86,7 +94,9 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
                     progress.TicketsInTest,
                     progress.TicketsTodo,
                     progress.JiraId,
-                    progress.Team
+                    progress.Team,
+                    progress.PointsDone,
+                    progress.PointsTodo
                 }
             );
         }
@@ -149,6 +159,7 @@ sealed class Issue
     public string Project => Fields?.Project?.Key;
     public bool IsResolved => Fields?.Resolution?.IsResolved ?? false;
     public string Team => Fields?.customfield_12000?.Value;
+    public decimal StoryPoints => Fields?.customfield_10004 ?? 0;
 
     public Fields Fields { get; set; }
 }
@@ -160,6 +171,7 @@ sealed class Fields
     public Project Project { get; set; }
     public Resolution Resolution { get; set; }
     public Team customfield_12000 { get; set; }
+    public decimal? customfield_10004 { get; set; } // Story Points
 }
 
 sealed class Team
