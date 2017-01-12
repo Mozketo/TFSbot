@@ -48,7 +48,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     {
         var issues = JiraEx.Get<IEnumerable<Issue>>(serviceUrl, $"/rest/agile/1.0/epic/{epic.Key}/issue?fields=project,resolution,status,customfield_10004&maxResults=250", username, password, "issues")
             .ToList();
-        log.Info($"Found {issues.Count()} issues in Epic.");
+        log.Info($"Found {issues.Count()} issues in Epic {epic.Key}.");
         var statusCounts = issues.GroupBy(i => i.Status)
             .Select(group => new
             {
@@ -78,7 +78,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             Team = epic.Team,
         };
         epicProgress.Add(progress);
-        log.Info($"{progress.EpicName} done");
+        log.Info($"'{progress.EpicName}' done");
     }
 
     // Now that all the data has been retrieved pump it into the DB
