@@ -46,7 +46,6 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     var epicProgress = new List<JiraEpicProgress>();
     foreach (var epic in epics)
     {
-        log.Info($"X");
         var issues = JiraEx.Get<IEnumerable<Issue>>(serviceUrl, $"/rest/agile/1.0/epic/{epic.Key}/issue?fields=project,resolution,status,customfield_10004&maxResults=250", username, password, "issues")
             .ToList();
         log.Info($"Found {issues.Count()} issues in Epic.");
@@ -56,12 +55,14 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
                 Status = group.Key,
                 Count = group.Count()
             });
+        log.Info($"Status counts {statusCounts.Count()}");
         var points = issues.GroupBy(i => i.Status)
             .Select(group => new
             {
                 Status = group.Key,
                 StoryPoints = group.Sum(i => i.StoryPoints)
             });
+        log.Info($"point counts {points.Count()}");
 
         var progress = new JiraEpicProgress
         {
