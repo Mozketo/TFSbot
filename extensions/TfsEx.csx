@@ -178,7 +178,7 @@ internal class TfsEx
             var vcs = tpc.GetService<VersionControlServer>();
             // Get a list of merge candidates but ignore the items with keywords in them
             var result = vcs.GetMergeCandidates(source, destination, RecursionType.Full)
-                .Where(mc => ignore.Any(s => mc.Changeset.Comment.IndexOf(s, StringComparison.OrdinalIgnoreCase) > -1));
+                .Where(mc => !ignore.Any(s => mc.Changeset.Comment.IndexOf(s, StringComparison.OrdinalIgnoreCase) > -1));
                 
             log.Info($"Found {result.Count()} merges between {source} and {destination} in {stopwatch.ElapsedMilliseconds} ms");
                 
