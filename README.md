@@ -29,10 +29,10 @@ Add a TFSbot to your Slack channels. Built for some specific use-cases so you ma
 
 Once everything is wired up in Slack and Azure you can use the the bot like this:
 
-`tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed
-`tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs
-`tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity
-`tfsbot search <term>` - Search 30 days of history
-`tfsbot search-user <username>` - Find 30 days of changes by committer
-`tfsbot merge /source /destination [username]` - List of merge candidates (changesets) between the source and destination.
+`tfsbot not-reviewed yyyy-MM-dd` - Changesets not peer-reviewed. 
+`tfsbot missing-jira yyyy-MM-dd` - Changesets missing Jira IDs. 
+`tfsbot tickets yyyy-MM-dd` - Changeset to Jira activity. 
+`tfsbot search <term>` - Search 30 days of history. 
+`tfsbot search-user <username>` - Find 30 days of changes by committer. 
+`tfsbot merge /source /destination [username]` - List of merge candidates (changesets) between the source and destination. 
 `tfsbot stats <date> [username1] [username2] ... [username3]` - Code review stats per username.
